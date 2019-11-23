@@ -14,8 +14,13 @@ class Game(object):
         self.ladybugs = []
         self.bug_width = 30
         self.bug_height = 30
-        self.player = Player()
+        self.p_width = 30
+        self.p_height = 30
+        self.player = Player((self.width-self.p_width)/2, (self.height-self.p_height)/2, 0, 0,
+                             self.p_width, self.p_height)
         self.num_of_ladybugs = 0
+        self.FPS = 60
+        self.clock = pygame.time.Clock()
 
     def set_difficulty(self, num_of_ladybugs):
         self.num_of_ladybugs = num_of_ladybugs
@@ -34,10 +39,11 @@ class Game(object):
                 if event.type == pygame.QUIT:
                     run = False
         self.__screen_update()
+        self.clock.tick(self.FPS)
         pygame.quit()
 
     def __screen_update(self):
-        self.screen.fill(0, 0, 0)
-        self.player.draw()
+        self.__screen.fill(0, 0, 0)
+        self.__screen.blit(self.player.img, self.player.rect)
         for ladybug in self.ladybugs:
-            ladybug.draw()
+            self.__screen.blit(ladybug.img, ladybug.rect)

@@ -24,6 +24,3 @@ class Object:
         elif self.y + self.y_speed + self.height >= height:
             self.y = height - self.height
             self.y_speed *= -1
-
-
-    def draw(self):
