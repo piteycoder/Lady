@@ -1,6 +1,7 @@
 import random
 import pygame
 
+
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
 
@@ -36,14 +37,14 @@ class Game(object):
     def run(self):
         run = True
         while run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-
-            self.__update_movements()
+            run = self.__update_movements()
             self.__screen_update()
             pygame.display.update()
             self.clock.tick(self.FPS)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
         pygame.quit()
 
     def __screen_update(self):
@@ -53,6 +54,9 @@ class Game(object):
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
 
     def __update_movements(self):
-        self.player.move(1, 1)
+        self.player.move(1/20, 1/20)
         for ladybug in self.ladybugs:
-            ladybug.move(random.randint(1, 5), random.randint(1, 5))
+            if self.player.collides(ladybug):
+                return False
+            ladybug.move(random.randint(1, 5)/1000, random.randint(1, 5)/1000)
+        return True

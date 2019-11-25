@@ -1,6 +1,6 @@
 from Game import Game
+import config
 
-
-game = Game(800, 600)
+game = Game(config.window_width, config.window_height)
 game.set_difficulty(20)
 game.run()
