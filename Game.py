@@ -26,10 +26,11 @@ class Game(object):
     def set_difficulty(self, num_of_ladybugs):
         self.num_of_ladybugs = num_of_ladybugs
         for i in range(self.num_of_ladybugs):
-            self.ladybugs.append(Ladybug(random.randint(0, self.width - self.bug_width),
-                                         random.randint(0, self.height - self.bug_height),
-                                         random.randint(1, 5)/1000,
-                                         random.randint(1, 5)/1000,
+            x_pos = random.choice((random.randint(0, self.width/2 - self.bug_width*2),
+                                   random.randint(self.width/2 + self.bug_width, self.width - self.bug_width)))
+            y_pos = random.choice((random.randint(0, self.height/2 - self.bug_height*2),
+                                   random.randint(self.height/2 + self.bug_height, self.height - self.bug_height)))
+            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5)/1000, random.randint(1, 5)/1000,
                                          self.bug_width,
                                          self.bug_height))
 
@@ -55,7 +56,9 @@ class Game(object):
     def __update_movements(self):
         self.player.move(1 / 20, 1 / 20)
         for ladybug in self.ladybugs:
-            if self.player.collides_with(ladybug):
-                return False
-            ladybug.move(random.randint(1, 5) / 1000, random.randint(1, 5) / 1000)
+            # if self.player.collides_with(ladybug):
+                # return False
+            x_dir = random.choice((-1, 1))
+            y_dir = random.choice((-1, 1))
+            ladybug.move(x_dir * random.randint(1, 5) / 100, y_dir * random.randint(1, 5) / 100)
         return True
