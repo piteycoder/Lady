@@ -1,7 +1,6 @@
 import random
 import pygame
 
-
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
 
@@ -29,8 +28,8 @@ class Game(object):
         for i in range(self.num_of_ladybugs):
             self.ladybugs.append(Ladybug(random.randint(0, self.width - self.bug_width),
                                          random.randint(0, self.height - self.bug_height),
-                                         random.randint(1, 5),
-                                         random.randint(1, 5),
+                                         random.randint(1, 5)/1000,
+                                         random.randint(1, 5)/1000,
                                          self.bug_width,
                                          self.bug_height))
 
@@ -54,9 +53,9 @@ class Game(object):
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
 
     def __update_movements(self):
-        self.player.move(1/20, 1/20)
+        self.player.move(1 / 20, 1 / 20)
         for ladybug in self.ladybugs:
-            if self.player.collides(ladybug):
+            if self.player.collides_with(ladybug):
                 return False
-            ladybug.move(random.randint(1, 5)/1000, random.randint(1, 5)/1000)
+            ladybug.move(random.randint(1, 5) / 1000, random.randint(1, 5) / 1000)
         return True

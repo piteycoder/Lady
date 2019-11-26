@@ -2,7 +2,7 @@ import config
 
 
 class Object:
-    def __init__(self, x, y, x_speed, y_speed, width, height):
+    def __init__(self, x=0, y=0, x_speed=0, y_speed=0, width=30, height=30):
         self.x = x
         self.y = y
         self.x_speed = x_speed
@@ -29,5 +29,9 @@ class Object:
             self.y_speed = -(self.y_speed/4)
         self.y += self.y_speed
 
-    def collides(self, other):
+    def collides_with(self, other):
+        x_collision = self.x < other.x + other.width and self.x + self.width > other.x
+        y_collision = self.y < other.y + other.height and self.y + self.height > other.y
+        if x_collision and y_collision:
+            return True
         return False
