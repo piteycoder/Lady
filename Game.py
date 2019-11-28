@@ -1,5 +1,6 @@
 import random
 import pygame
+import config
 
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
@@ -37,14 +38,17 @@ class Game(object):
     def run(self):
         run = True
         while run:
-            run = self.__update_movements()
             self.__screen_update()
             pygame.display.update()
             self.clock.tick(self.FPS)
 
+            self.player.move(-self.player.x_speed/10, -self.player.y_speed/10)
+            run = self.__update_enemies_movements()
+
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
+                run = self.__handle_events(event)
+            self.__handle_keys(pygame.key.get_pressed())
+
         pygame.quit()
 
     def __screen_update(self):
@@ -53,12 +57,26 @@ class Game(object):
         for ladybug in self.ladybugs:
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
 
-    def __update_movements(self):
-        self.player.move(1 / 20, 1 / 20)
+    def __update_enemies_movements(self):
         for ladybug in self.ladybugs:
-            # if self.player.collides_with(ladybug):
-                # return False
+            if self.player.collides_with(ladybug):
+                return False
             x_dir = random.choice((-1, 1))
             y_dir = random.choice((-1, 1))
-            ladybug.move(x_dir * random.randint(1, 5) / 100, y_dir * random.randint(1, 5) / 100)
+            ladybug.move(x_dir * random.randint(1, 5) / 25, y_dir * random.randint(1, 5) / 25)
         return True
+
+    def __handle_events(self, event):
+        if event.type == pygame.QUIT:
+            return False
+        return True
+
+    def __handle_keys(self, keys):
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            self.player.move(0, -config.player_movespeed)
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            self.player.move(0, config.player_movespeed)
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            self.player.move(-config.player_movespeed, 0)
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            self.player.move(config.player_movespeed, 0)
