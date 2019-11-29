@@ -23,15 +23,17 @@ class Game(object):
         self.num_of_ladybugs = 0
         self.FPS = 60
         self.clock = pygame.time.Clock()
+        self.score = 0
+        self.font = pygame.font.SysFont("Arial", 20, True)
 
     def set_difficulty(self, num_of_ladybugs):
         self.num_of_ladybugs = num_of_ladybugs
         for i in range(self.num_of_ladybugs):
-            x_pos = random.choice((random.randint(0, self.width/2 - self.bug_width*2),
-                                   random.randint(self.width/2 + self.bug_width, self.width - self.bug_width)))
-            y_pos = random.choice((random.randint(0, self.height/2 - self.bug_height*2),
-                                   random.randint(self.height/2 + self.bug_height, self.height - self.bug_height)))
-            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5)/1000, random.randint(1, 5)/1000,
+            x_pos = random.choice((random.randint(0, self.width / 2 - self.bug_width * 2),
+                                   random.randint(self.width / 2 + self.bug_width, self.width - self.bug_width)))
+            y_pos = random.choice((random.randint(0, self.height / 2 - self.bug_height * 2),
+                                   random.randint(self.height / 2 + self.bug_height, self.height - self.bug_height)))
+            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5) / 1000, random.randint(1, 5) / 1000,
                                          self.bug_width,
                                          self.bug_height))
 
@@ -42,8 +44,9 @@ class Game(object):
             pygame.display.update()
             self.clock.tick(self.FPS)
 
-            self.player.move(-self.player.x_speed/10, -self.player.y_speed/10)
+            self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
             run = self.__update_enemies_movements()
+            self.score += 1*self.num_of_ladybugs
 
             for event in pygame.event.get():
                 run = self.__handle_events(event)
@@ -56,6 +59,7 @@ class Game(object):
         self.__screen.blit(self.player.img, (self.player.x, self.player.y))
         for ladybug in self.ladybugs:
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
+        self.__screen.blit(self.font.render(str(self.score), 1, (255, 255, 255)), (10, 10))
 
     def __update_enemies_movements(self):
         for ladybug in self.ladybugs:
