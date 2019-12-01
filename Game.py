@@ -1,6 +1,7 @@
 import random
 import pygame
 import config
+import os
 
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
@@ -38,20 +39,22 @@ class Game(object):
                                          self.bug_height))
 
     def run(self):
-        run = True
-        while run:
+        run = self.__menu()
+        no_collision = True
+        while run and no_collision:
             self.__screen_update()
             pygame.display.update()
             self.clock.tick(self.FPS)
 
             self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
-            run = self.__update_enemies_movements()
-            self.score += 1*self.num_of_ladybugs
+            no_collision = self.__update_enemies_movements()
+            self.score += 1 * self.num_of_ladybugs
 
             for event in pygame.event.get():
                 run = self.__handle_events(event)
             self.__handle_keys(pygame.key.get_pressed())
-
+        if not no_collision:
+            pygame.time.wait(3000)
         pygame.quit()
 
     def __screen_update(self):
@@ -84,3 +87,18 @@ class Game(object):
             self.player.move(-config.player_movespeed, 0)
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.player.move(config.player_movespeed, 0)
+
+    def __menu(self):
+        logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
+        logo = pygame.transform.scale(logo, (300, 300))
+        pygame.time.wait(300)
+        run = False
+        while not run:
+            self.__screen.fill((0, 0, 0))
+            self.__screen.blit(logo, ((self.width-300)/2, (self.height-300)/2))
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.time.wait(500)
+                    return False
+        return run
