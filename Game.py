@@ -40,7 +40,7 @@ class Game(object):
                                          self.bug_height))
 
     def run(self):
-        run = self.__menu()
+        run = True # self.__menu()
         no_collision = True
         while run and no_collision:
             self.__screen_update()
@@ -63,6 +63,7 @@ class Game(object):
         self.__screen.blit(self.player.img, (self.player.x, self.player.y))
         for ladybug in self.ladybugs:
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
+        self.caption = Caption(str(self.score), 20)
         self.__screen.blit(self.caption.text, (10, 10))
 
     def __update_enemies_movements(self):
