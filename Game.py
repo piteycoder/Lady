@@ -5,6 +5,7 @@ import os
 
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
+from Objects.Caption import Caption
 
 
 class Game(object):
@@ -25,7 +26,7 @@ class Game(object):
         self.FPS = 60
         self.clock = pygame.time.Clock()
         self.score = 0
-        self.font = pygame.font.SysFont("Arial", 20, True)
+        self.caption = Caption("text", 20)
 
     def set_difficulty(self, num_of_ladybugs):
         self.num_of_ladybugs = num_of_ladybugs
@@ -62,7 +63,7 @@ class Game(object):
         self.__screen.blit(self.player.img, (self.player.x, self.player.y))
         for ladybug in self.ladybugs:
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
-        self.__screen.blit(self.font.render(str(self.score), 1, (255, 255, 255)), (10, 10))
+        self.__screen.blit(self.caption.text, (10, 10))
 
     def __update_enemies_movements(self):
         for ladybug in self.ladybugs:
@@ -91,11 +92,20 @@ class Game(object):
     def __menu(self):
         logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
         logo = pygame.transform.scale(logo, (300, 300))
+        captions = {
+            "Start": Caption("START", 50, config.colors.get("Grey")),
+            "Quit": Caption("QUIT", 50, config.colors.get("Grey"))
+        }
         pygame.time.wait(300)
         run = False
         while not run:
             self.__screen.fill((0, 0, 0))
             self.__screen.blit(logo, ((self.width-300)/2, (self.height-300)/2))
+            x = int(config.window_width/4)
+            x_pos = x
+            for caption in captions.values():
+                self.__screen.blit(caption.text, (x_pos, caption.size))
+                x_pos += x
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
