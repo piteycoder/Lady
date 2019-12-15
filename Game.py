@@ -40,7 +40,8 @@ class Game(object):
                                          self.bug_height))
 
     def run(self):
-        run = True # self.__menu()
+        menu = self.Menu(self.width, self.height)
+        run = menu.run()
         no_collision = True
         while run and no_collision:
             self.__screen_update()
@@ -90,26 +91,35 @@ class Game(object):
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.player.move(config.player_movespeed, 0)
 
-    def __menu(self):
-        logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
-        logo = pygame.transform.scale(logo, (300, 300))
-        captions = {
-            "Start": Caption("START", 50, config.colors.get("Grey")),
-            "Quit": Caption("QUIT", 50, config.colors.get("Grey"))
-        }
-        pygame.time.wait(300)
-        run = False
-        while not run:
+    class Menu:  # MENU HANDLER
+        def __init__(self, width, height):
+            self.__screen = pygame.display.set_mode((width, height))
+            self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
+            self.logo = pygame.transform.scale(self.logo, (300, 300))
+            self.captions = {
+                "Start": Caption("START", 50, config.colors.get("White")),
+                "Quit": Caption("QUIT", 50, config.colors.get("Grey"))
+            }
+            self.width = width
+            self.height = height
+
+        def run(self):
+            pygame.time.wait(300)
+            run = False
+            while not run:
+                self.update()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.time.wait(500)
+                        return False
+            return run
+
+        def update(self):
             self.__screen.fill((0, 0, 0))
-            self.__screen.blit(logo, ((self.width-300)/2, (self.height-300)/2))
-            x = int(config.window_width/4)
+            self.__screen.blit(self.logo, ((self.width - 300) / 2, (self.height - 300) / 2))
+            x = int(config.window_width/2)
             x_pos = x
-            for caption in captions.values():
-                self.__screen.blit(caption.text, (x_pos, caption.size))
+            for caption in self.captions.values():
+                self.__screen.blit(caption.text, (x_pos-int(config.window_width/3), caption.size))
                 x_pos += x
             pygame.display.update()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.time.wait(500)
-                    return False
-        return run
