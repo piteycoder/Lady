@@ -43,6 +43,21 @@ class Game(object):
         menu = self.Menu(self.width, self.height)
         run = menu.run()
         no_collision = True
+        if run:
+            start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
+            self.__screen_update()
+            self.__screen.blit(start.text, (self.width/6, int(self.height*0.7)))
+            pygame.display.update()
+
+            space = True
+            while space:
+                for event in pygame.event.get():
+                    space = run = self.__handle_events(event)
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+
+                            space = False
+
         while run and no_collision:
             self.__screen_update()
             pygame.display.update()
@@ -96,12 +111,11 @@ class Game(object):
             self.__screen = pygame.display.set_mode((width, height))
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
             self.logo = pygame.transform.scale(self.logo, (300, 300))
-            self.captions = {
-                "Start": Caption("START", 50, config.colors.get("White")),
-                "Quit": Caption("QUIT", 50, config.colors.get("Grey"))
-            }
+            self.captions = [Caption("QUIT", 50, config.colors.get("Grey")),
+                             Caption("START", 50, config.colors.get("White"))]
             self.width = width
             self.height = height
+            self.selected = 1
 
         def run(self):
             pygame.time.wait(300)
@@ -112,6 +126,22 @@ class Game(object):
                     if event.type == pygame.QUIT:
                         pygame.time.wait(500)
                         return False
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                            if self.selected == 0:
+                                self.selected = len(self.captions)-1
+                            else:
+                                self.selected -= 1
+                            self.captions[self.selected].change_color(config.colors.get("White"))
+                        if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                            if self.selected == len(self.captions)-1:
+                                self.selected = 0
+                            else:
+                                self.selected += 1
+                            self.captions[self.selected].change_color(config.colors.get("White"))
+                        if event.key == pygame.K_RETURN:
+                            return self.selected
+
             return run
 
         def update(self):
@@ -119,7 +149,13 @@ class Game(object):
             self.__screen.blit(self.logo, ((self.width - 300) / 2, (self.height - 300) / 2))
             x = int(config.window_width/2)
             x_pos = x
-            for caption in self.captions.values():
+            self.grey_captions_except(self.selected)
+            for caption in self.captions:
                 self.__screen.blit(caption.text, (x_pos-int(config.window_width/3), caption.size))
                 x_pos += x
             pygame.display.update()
+
+        def grey_captions_except(self, pos):
+            for i in range(len(self.captions)):
+                if i != pos:
+                    self.captions[i].change_color()
