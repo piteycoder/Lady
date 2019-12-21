@@ -8,6 +8,8 @@ class Caption:
         self.text = self.font.render(text, 1, color)
         self.size = size
         self.caption = text
+        self.x = 0
+        self.y = 0
 
     def change_color(self, color=config.colors.get("Grey")):
         self.font = pygame.font.SysFont("comicsansms", self.size, color)
