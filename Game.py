@@ -16,12 +16,7 @@ class Game(object):
         self.height = height
         self.__screen = pygame.display.set_mode((self.width, self.height))
         self.ladybugs = []
-        self.bug_width = 30
-        self.bug_height = 30
-        self.p_width = 30
-        self.p_height = 30
-        self.player = Player((self.width - self.p_width) / 2, (self.height - self.p_height) / 2, 0, 0,
-                             self.p_width, self.p_height)
+        self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
         self.num_of_ladybugs = 0
         self.FPS = 60
         self.clock = pygame.time.Clock()
@@ -31,35 +26,26 @@ class Game(object):
     def __set_difficulty(self, num_of_ladybugs=20):
         self.num_of_ladybugs = num_of_ladybugs
         for i in range(self.num_of_ladybugs):
-            x_pos = random.choice((random.randint(0, self.width / 2 - self.bug_width * 2),
-                                   random.randint(self.width / 2 + self.bug_width, self.width - self.bug_width)))
-            y_pos = random.choice((random.randint(0, self.height / 2 - self.bug_height * 2),
-                                   random.randint(self.height / 2 + self.bug_height, self.height - self.bug_height)))
-            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5) / 1000, random.randint(1, 5) / 1000,
-                                         self.bug_width,
-                                         self.bug_height))
+            x_pos = random.choice((random.randint(0, self.width / 2 - 60),
+                                   random.randint(self.width / 2 + 30, self.width - 30)))
+            y_pos = random.choice((random.randint(0, self.height / 2 - 60),
+                                   random.randint(self.height / 2 + 30, self.height - 30)))
+            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5) / 1000, random.randint(1, 5) / 1000))
 
     def run(self):
         menu = self.Menu(self.width, self.height)
-        run_menu = menu.run()
-        while run_menu:
-            run = False
+        menu.run()
+        start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
+        start.x = (self.width - start.text.get_width()) / 2
+        start.y = int(self.height * 0.7)
+        self.__screen_update([start])
+        game = self.__get_space()
+        while game:
+            run = True
             collision = False
-            if run_menu:
-                start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
-                start.x = (self.width-start.text.get_width())/2
-                start.y = int(self.height*0.7)
-                self.__screen_update([start])
-
-                space = True
-                while space:
-                    for event in pygame.event.get():
-                        space = run = self.__handle_events(event)
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_SPACE:
-                                space = False
-
+            start.y = int(self.height*0.7)
             self.__set_difficulty()
+            self.__reset_player()
             while run and not collision:
                 self.__screen_update()
                 self.clock.tick(self.FPS)
@@ -69,7 +55,8 @@ class Game(object):
                 self.score += 1 * self.num_of_ladybugs
 
                 for event in pygame.event.get():
-                    run = self.__handle_events(event)
+                    if event.type == pygame.QUIT:
+                        run = False
                 self.__handle_keys(pygame.key.get_pressed())
             if collision:
                 result = Caption("Twój wynik: " + str(self.score), 50)
@@ -77,11 +64,14 @@ class Game(object):
                 result.y = (self.height-result.text.get_height())/2
                 start.y = result.y + result.text.get_height() + 10
                 self.__remove_ladybugs()
-                self.__screen_update([result])
-                run_menu = menu.run()
+                self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
+                self.__screen_update([result, start])
+                game = self.__get_space()
         pygame.quit()
 
-    def __screen_update(self, added_captions=[]):
+    def __screen_update(self, added_captions=None):
+        if added_captions is None:
+            added_captions = []
         self.__screen.fill((0, 0, 0))
         self.__screen.blit(self.player.img, (self.player.x, self.player.y))
         for ladybug in self.ladybugs:
@@ -102,11 +92,6 @@ class Game(object):
             ladybug.move(x_dir * random.randint(1, 5) / 25, y_dir * random.randint(1, 5) / 25)
         return False
 
-    def __handle_events(self, event):
-        if event.type == pygame.QUIT:
-            return False
-        return True
-
     def __handle_keys(self, keys):
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.player.move(0, -config.player_movespeed)
@@ -119,6 +104,25 @@ class Game(object):
 
     def __remove_ladybugs(self):
         self.ladybugs.clear()
+
+    def __reset_player(self, x_pos=0, y_pos=0):
+        if not x_pos or not y_pos:
+            self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
+        else:
+            self.player.x = x_pos
+            self.player.y = y_pos
+
+    def __get_space(self, space=True):
+        while space:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        space = False
+                    if event.key == pygame.K_ESCAPE:
+                        return False
+        return True
 
     class Menu:  # MENU HANDLER
         def __init__(self, width, height):
@@ -153,10 +157,8 @@ class Game(object):
                             else:
                                 self.selected += 1
                             self.captions[self.selected].change_color(config.colors.get("White"))
-                        if event.key == pygame.K_RETURN:
+                        if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                             return self.selected
-
-            return run
 
         def update(self):
             self.__screen.fill((0, 0, 0))

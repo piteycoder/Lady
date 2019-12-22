@@ -2,7 +2,7 @@ import config
 
 
 class Object:
-    def __init__(self, x=0, y=0, x_speed=0, y_speed=0, width=30, height=30):
+    def __init__(self, x, y, x_speed, y_speed, width, height):
         self.x = x
         self.y = y
         self.x_speed = x_speed
