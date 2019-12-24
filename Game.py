@@ -43,6 +43,7 @@ class Game(object):
         while game:
             run = True
             collision = False
+            self.score = 0
             start.y = int(self.height*0.7)
             self.__set_difficulty()
             self.__reset_player()
