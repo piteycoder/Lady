@@ -34,40 +34,40 @@ class Game(object):
 
     def run(self):
         menu = self.Menu(self.width, self.height)
-        menu.run()
-        start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
-        start.x = (self.width - start.text.get_width()) / 2
-        start.y = int(self.height * 0.7)
-        self.__screen_update([start])
-        game = self.__get_space()
-        while game:
-            run = True
-            collision = False
-            self.score = 0
-            start.y = int(self.height*0.7)
-            self.__set_difficulty()
-            self.__reset_player()
-            while run and not collision:
-                self.__screen_update()
-                self.clock.tick(self.FPS)
+        if menu.run():
+            start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
+            start.x = (self.width - start.text.get_width()) / 2
+            start.y = int(self.height * 0.7)
+            self.__screen_update([start])
+            game = self.__get_space()
+            while game:
+                run = True
+                collision = False
+                self.score = 0
+                start.y = int(self.height*0.7)
+                self.__set_difficulty()
+                self.__reset_player()
+                while run and not collision:
+                    self.__screen_update()
+                    self.clock.tick(self.FPS)
 
-                self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
-                collision = self.__update_enemies_movements()
-                self.score += 1 * self.num_of_ladybugs
+                    self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
+                    collision = self.__update_enemies_movements()
+                    self.score += 1 * self.num_of_ladybugs
 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        run = False
-                self.__handle_keys(pygame.key.get_pressed())
-            if collision:
-                result = Caption("Twój wynik: " + str(self.score), 50)
-                result.x = (self.width-result.text.get_width())/2
-                result.y = (self.height-result.text.get_height())/2
-                start.y = result.y + result.text.get_height() + 10
-                self.__remove_ladybugs()
-                self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
-                self.__screen_update([result, start])
-                game = self.__get_space()
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            run = False
+                    self.__handle_keys(pygame.key.get_pressed())
+                if collision:
+                    result = Caption("Twój wynik: " + str(self.score), 50)
+                    result.x = (self.width-result.text.get_width())/2
+                    result.y = (self.height-result.text.get_height())/2
+                    start.y = result.y + result.text.get_height() + 10
+                    self.__remove_ladybugs()
+                    self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
+                    self.__screen_update([result, start])
+                    game = self.__get_space()
         pygame.quit()
 
     def __screen_update(self, added_captions=None):
