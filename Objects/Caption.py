@@ -19,3 +19,6 @@ class Caption:
     def resize(self, size=1):
         self.font = pygame.font.SysFont("comicsansms", size, 1)
         self.text = self.font.render(self.caption, 1, self.color)
+
+    def get_width(self):
+        return self.text.get_width()

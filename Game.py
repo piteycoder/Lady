@@ -6,6 +6,7 @@ import os
 from Objects.Ladybug import Ladybug
 from Objects.Player import Player
 from Objects.Caption import Caption
+from File import File
 
 
 class Game(object):
@@ -34,7 +35,11 @@ class Game(object):
 
     def run(self):
         menu = self.Menu(self.width, self.height)
-        if menu.run():
+        if menu.run() == 1:
+            file = File(os.path.join('scores.bin'))
+            file.open()
+            scoretable = file.get_data()
+        elif menu.run() == 2:
             start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
             start.x = (self.width - start.text.get_width()) / 2
             start.y = int(self.height * 0.7)
@@ -58,6 +63,10 @@ class Game(object):
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             run = False
+                        elif event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                run = False
+
                     self.__handle_keys(pygame.key.get_pressed())
                 if collision:
                     result = Caption("Twój wynik: " + str(self.score), 50)
@@ -103,6 +112,7 @@ class Game(object):
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.player.move(config.player_movespeed, 0)
 
+
     def __remove_ladybugs(self):
         self.ladybugs.clear()
 
@@ -130,11 +140,12 @@ class Game(object):
             self.__screen = pygame.display.set_mode((width, height))
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
             self.logo = pygame.transform.scale(self.logo, (300, 300))
-            self.captions = [Caption("QUIT", 50, config.colors.get("Grey")),
-                             Caption("START", 50, config.colors.get("White"))]
+            self.captions = [Caption("QUIT", 30, config.colors.get("Grey")),
+                             Caption("HIGHSCORES", 30, config.colors.get("Grey")),
+                             Caption("START", 30)]
             self.width = width
             self.height = height
-            self.selected = 1
+            self.selected = 2
 
         def run(self):
             pygame.time.wait(300)
@@ -164,12 +175,16 @@ class Game(object):
         def update(self):
             self.__screen.fill((0, 0, 0))
             self.__screen.blit(self.logo, ((self.width - 300) / 2, (self.height - 300) / 2))
-            x = int(config.window_width/2)
-            x_pos = x
+            captions_total_width = 0
+            for caption in self.captions:
+                captions_total_width += caption.get_width()
+            gap = int((self.width-captions_total_width)/(len(self.captions)+1))
+            x_pos = 0
             self.grey_captions_except(self.selected)
             for caption in self.captions:
-                self.__screen.blit(caption.text, (x_pos-int(config.window_width/3), caption.size))
-                x_pos += x
+                x_pos += gap
+                self.__screen.blit(caption.text, (x_pos, 50))
+                x_pos += caption.get_width()
             pygame.display.update()
 
         def grey_captions_except(self, pos):
