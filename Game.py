@@ -7,6 +7,7 @@ from Objects.Ladybug import Ladybug
 from Objects.Player import Player
 from Objects.Caption import Caption
 from File import File
+from Score import Score
 
 
 class Game(object):
@@ -21,25 +22,16 @@ class Game(object):
         self.num_of_ladybugs = 0
         self.FPS = 60
         self.clock = pygame.time.Clock()
-        self.score = 0
+        self.player.score = 0
+        self.highscores = File(os.path.join(config.highscores_filename)).open()
         self.caption = Caption("text", 20)
-
-    def __set_difficulty(self, num_of_ladybugs=20):
-        self.num_of_ladybugs = num_of_ladybugs
-        for i in range(self.num_of_ladybugs):
-            x_pos = random.choice((random.randint(0, self.width / 2 - 60),
-                                   random.randint(self.width / 2 + 30, self.width - 30)))
-            y_pos = random.choice((random.randint(0, self.height / 2 - 60),
-                                   random.randint(self.height / 2 + 30, self.height - 30)))
-            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5) / 1000, random.randint(1, 5) / 1000))
+        self.highscores = File(config.highscores_filename)
 
     def run(self):
         menu = self.Menu(self.width, self.height)
-        if menu.run() == 1:
-            file = File(os.path.join('scores.bin'))
-            file.open()
-            scoretable = file.get_data()
-        elif menu.run() == 2:
+        while menu.run() == 1:
+            menu.open_highscores()
+        while menu.run() == 2:
             start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
             start.x = (self.width - start.text.get_width()) / 2
             start.y = int(self.height * 0.7)
@@ -48,7 +40,7 @@ class Game(object):
             while game:
                 run = True
                 collision = False
-                self.score = 0
+                self.player.score = 0
                 start.y = int(self.height*0.7)
                 self.__set_difficulty()
                 self.__reset_player()
@@ -58,7 +50,7 @@ class Game(object):
 
                     self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
                     collision = self.__update_enemies_movements()
-                    self.score += 1 * self.num_of_ladybugs
+                    self.player.score += 1 * self.num_of_ladybugs
 
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -69,15 +61,26 @@ class Game(object):
 
                     self.__handle_keys(pygame.key.get_pressed())
                 if collision:
-                    result = Caption("Twój wynik: " + str(self.score), 50)
-                    result.x = (self.width-result.text.get_width())/2
-                    result.y = (self.height-result.text.get_height())/2
+                    result = Caption("Twój wynik: " + str(self.player.score), 50)
+                    result.x = int((self.width-result.text.get_width())/2)
+                    result.y = int((self.height-result.text.get_height())/2)
                     start.y = result.y + result.text.get_height() + 10
                     self.__remove_ladybugs()
                     self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
                     self.__screen_update([result, start])
+                    self.__update_highscores()
                     game = self.__get_space()
+
         pygame.quit()
+
+    def __set_difficulty(self, num_of_ladybugs=20):
+        self.num_of_ladybugs = num_of_ladybugs
+        for i in range(self.num_of_ladybugs):
+            x_pos = random.choice((random.randint(0, self.width / 2 - 60),
+                                   random.randint(self.width / 2 + 30, self.width - 30)))
+            y_pos = random.choice((random.randint(0, self.height / 2 - 60),
+                                   random.randint(self.height / 2 + 30, self.height - 30)))
+            self.ladybugs.append(Ladybug(x_pos, y_pos, random.randint(1, 5) / 1000, random.randint(1, 5) / 1000))
 
     def __screen_update(self, added_captions=None):
         if added_captions is None:
@@ -86,7 +89,7 @@ class Game(object):
         self.__screen.blit(self.player.img, (self.player.x, self.player.y))
         for ladybug in self.ladybugs:
             self.__screen.blit(ladybug.img, (ladybug.x, ladybug.y))
-        self.caption = Caption(str(self.score), 20)
+        self.caption = Caption(str(self.player.score), 20)
         self.__screen.blit(self.caption.text, (10, 10))
         if len(added_captions) > 0:
             for caption in added_captions:
@@ -135,7 +138,21 @@ class Game(object):
                         return False
         return True
 
-    class Menu:  # MENU HANDLER
+    def __update_highscores(self):
+        i = len(self.highscores.data)-1
+        if self.player.score <= self.highscores.data[i].score:
+            return
+
+        self.highscores.data[i] = Score(self.player.name, self.player.score)
+        while i > 0 and self.highscores.data[i] > self.highscores.data[i-1]:
+            temp = self.highscores.data[i]
+            self.highscores.data[i] = self.highscores.data[i-1]
+            i -= 1
+            self.highscores.data[i] = temp
+        self.highscores.save()
+
+
+    class Menu:  ############# MENU HANDLER #################
         def __init__(self, width, height):
             self.__screen = pygame.display.set_mode((width, height))
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
@@ -149,8 +166,8 @@ class Game(object):
 
         def run(self):
             pygame.time.wait(300)
-            run = False
-            while not run:
+            run = True
+            while run:
                 self.update()
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -191,3 +208,22 @@ class Game(object):
             for i in range(len(self.captions)):
                 if i != pos:
                     self.captions[i].change_color()
+
+        def open_highscores(self):
+            run = True
+            highscores = File(config.highscores_filename).open()
+            title = Caption("HIGHSCORE TABLE", 25)
+            x_pos = int((self.width - title.get_width()) / 2)
+            while run:
+                y_pos = 20
+                self.__screen.fill((0, 0, 0))
+                self.__screen.blit(title.text, (x_pos, y_pos))
+                for score in highscores:
+                    player = (Caption(score.player_name, 20), Caption(": ", 20), Caption(score.value, 20))
+                    y_pos += int(player[0].get_height()/2)
+                    for caption in player:
+                        self.__screen.blit(caption.text, (x_pos, y_pos))
+                        x_pos += caption.get_width()
+                    x_pos = int((self.width - title.get_width()) / 2)
+
+                pygame.display.update()
