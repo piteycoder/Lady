@@ -25,7 +25,7 @@ class Game(object):
         self.player.score = 0
         self.highscores = File(os.path.join(config.highscores_filename)).open()
         self.caption = Caption("text", 20)
-        self.highscores = File(config.highscores_filename)
+        self.highscores = self.__set_default_highscores()
 
     def run(self):
         menu = self.Menu(self.width, self.height)
@@ -139,6 +139,7 @@ class Game(object):
         return True
 
     def __update_highscores(self):
+        self.highscores = File(config.highscores_filename).open()
         i = len(self.highscores.data)-1
         if self.player.score <= self.highscores.data[i].score:
             return
@@ -151,6 +152,13 @@ class Game(object):
             self.highscores.data[i] = temp
         self.highscores.save()
 
+    def __set_default_highscores(self):
+        default_points = 100000
+        highscores = []
+        for i in range(10):
+            highscores.append(Score(config.player_name, default_points))
+            default_points -= 10000
+        return highscores
 
     class Menu:  ############# MENU HANDLER #################
         def __init__(self, width, height):
@@ -211,19 +219,28 @@ class Game(object):
 
         def open_highscores(self):
             run = True
-            highscores = File(config.highscores_filename).open()
-            title = Caption("HIGHSCORE TABLE", 25)
+            highscores = File(config.highscores_filename)
+            highscores.open()
+            title = Caption("HIGHSCORE TABLE", 30)
             x_pos = int((self.width - title.get_width()) / 2)
             while run:
-                y_pos = 20
+                y_pos = 40
                 self.__screen.fill((0, 0, 0))
                 self.__screen.blit(title.text, (x_pos, y_pos))
-                for score in highscores:
-                    player = (Caption(score.player_name, 20), Caption(": ", 20), Caption(score.value, 20))
-                    y_pos += int(player[0].get_height()/2)
+                y_pos += title.get_height()
+                for score in highscores.data:
+                    player = (Caption(score.player_name, 20), Caption(": ", 20), Caption(score.score, 20))
+                    y_pos += int((player[0].get_height()/2)*3)
                     for caption in player:
                         self.__screen.blit(caption.text, (x_pos, y_pos))
                         x_pos += caption.get_width()
                     x_pos = int((self.width - title.get_width()) / 2)
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            return False
 
                 pygame.display.update()

@@ -1,8 +1,8 @@
 window_height = 600
 window_width = 800
 player_movespeed = 1/2
-player_name = "Player1"
-highscores_filename = "scores"
+player_name = "Patryk"
+highscores_filename = "scores.pickle"
 colors = {
             "Black": (0, 0, 0),
             "White": (255, 255, 255),
