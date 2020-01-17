@@ -25,3 +25,6 @@ class Caption:
 
     def get_height(self):
         return self.text.get_height()
+
+    def __eq__(self, other):
+        return self.caption == other.caption

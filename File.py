@@ -19,5 +19,9 @@ class File:
             messagebox.showerror("Error!", "Błąd pliku " + str(e))
 
     def save(self):
-        with open(self.filename, 'wb') as file:
-            pickle.dump(self.data, file)
+        try:
+            with open(self.filename, 'wb') as file:
+                pickle.dump(self.data, file)
+        except IOError as e:
+            Tk().wm_withdraw()
+            messagebox.showerror("Error!", "Błąd pliku " + str(e))

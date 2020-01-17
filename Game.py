@@ -8,6 +8,7 @@ from Objects.Player import Player
 from Objects.Caption import Caption
 from File import File
 from Score import Score
+from Buttons import Buttons
 
 
 class Game(object):
@@ -22,58 +23,59 @@ class Game(object):
         self.num_of_ladybugs = 0
         self.FPS = 60
         self.clock = pygame.time.Clock()
-        self.player.score = 0
-        self.highscores = File(os.path.join(config.highscores_filename)).open()
+        self.highscores = File(config.highscores_filename)
         self.caption = Caption("text", 20)
-        self.highscores = self.__set_default_highscores()
 
     def run(self):
-        menu = self.Menu(self.width, self.height)
-        while menu.run() == 1:
-            menu.open_highscores()
-        while menu.run() == 2:
-            start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
-            start.x = (self.width - start.text.get_width()) / 2
-            start.y = int(self.height * 0.7)
-            self.__screen_update([start])
-            game = self.__get_space()
-            while game:
-                run = True
-                collision = False
-                self.player.score = 0
-                start.y = int(self.height*0.7)
-                self.__set_difficulty()
-                self.__reset_player()
-                while run and not collision:
-                    self.__screen_update()
-                    self.clock.tick(self.FPS)
+        run = True
+        while run:
+            menu = self.Menu(self.width, self.height)
+            run = menu.run()
+            if run == 1:
+                menu.open_highscores()
+            elif run == 2:
+                start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
+                start.x = (self.width - start.text.get_width()) / 2
+                start.y = int(self.height * 0.7)
+                self.__screen_update([start])
+                game = self.__get_space()
+                while game:
+                    run = True
+                    collision = False
+                    self.player.score = 0
+                    start.y = int(self.height*0.7)
+                    self.__set_difficulty()
+                    self.__reset_player()
+                    while run and not collision:
+                        self.__screen_update()
+                        self.clock.tick(self.FPS)
 
-                    self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
-                    collision = self.__update_enemies_movements()
-                    self.player.score += 1 * self.num_of_ladybugs
+                        self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
+                        collision = self.__update_enemies_movements()
+                        self.player.score += self.num_of_ladybugs
 
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            run = False
-                        elif event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_ESCAPE:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
                                 run = False
+                            elif event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_ESCAPE:
+                                    run = False
 
-                    self.__handle_keys(pygame.key.get_pressed())
-                if collision:
-                    result = Caption("Twój wynik: " + str(self.player.score), 50)
-                    result.x = int((self.width-result.text.get_width())/2)
-                    result.y = int((self.height-result.text.get_height())/2)
-                    start.y = result.y + result.text.get_height() + 10
-                    self.__remove_ladybugs()
-                    self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
-                    self.__screen_update([result, start])
-                    self.__update_highscores()
-                    game = self.__get_space()
+                        self.__handle_keys(pygame.key.get_pressed())
+                    if collision:
+                        result = Caption("Twój wynik: " + str(self.player.score), 50)
+                        result.x = int((self.width-result.text.get_width())/2)
+                        result.y = int((self.height-result.text.get_height())/2)
+                        start.y = result.y + result.text.get_height() + 10
+                        self.__remove_ladybugs()
+                        self.__reset_player((self.width-self.player.width)/2, int(self.height/3))
+                        self.__screen_update([result, start])
+                        self.__update_highscores()
+                        game = self.__get_space()
 
         pygame.quit()
 
-    def __set_difficulty(self, num_of_ladybugs=20):
+    def __set_difficulty(self, num_of_ladybugs=config.default_level):
         self.num_of_ladybugs = num_of_ladybugs
         for i in range(self.num_of_ladybugs):
             x_pos = random.choice((random.randint(0, self.width / 2 - 60),
@@ -139,12 +141,13 @@ class Game(object):
         return True
 
     def __update_highscores(self):
-        self.highscores = File(config.highscores_filename).open()
+        self.highscores.open()
         i = len(self.highscores.data)-1
         if self.player.score <= self.highscores.data[i].score:
             return
-
+        print("Score to be saved: " + str(self.player.score))
         self.highscores.data[i] = Score(self.player.name, self.player.score)
+        print("Score saved: " + str(self.highscores.data[i].score))
         while i > 0 and self.highscores.data[i] > self.highscores.data[i-1]:
             temp = self.highscores.data[i]
             self.highscores.data[i] = self.highscores.data[i-1]
@@ -165,57 +168,32 @@ class Game(object):
             self.__screen = pygame.display.set_mode((width, height))
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
             self.logo = pygame.transform.scale(self.logo, (300, 300))
-            self.captions = [Caption("QUIT", 30, config.colors.get("Grey")),
-                             Caption("HIGHSCORES", 30, config.colors.get("Grey")),
-                             Caption("START", 30)]
+            self.buttons = Buttons([[Caption("QUIT", 30, config.colors.get("Grey")),
+                            Caption("HIGHSCORES", 30, config.colors.get("Grey")),
+                             Caption("START", 30)],
+                             [Caption("Player name: ", 30, config.colors.get("Grey")),
+                              Caption("", 30, config.colors.get("Grey"))],
+                             [Caption("Set difficulty: ", 30, config.colors.get("Grey")),
+                              Caption(str(config.default_level), 30, config.colors.get("Grey"))]])
             self.width = width
             self.height = height
-            self.selected = 2
+            self.selection = Caption("QUIT")
 
         def run(self):
-            pygame.time.wait(300)
             run = True
-            while run:
+            while run >= 0:
                 self.update()
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.time.wait(500)
-                        return False
-                    elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_a or event.key == pygame.K_LEFT:
-                            if self.selected == 0:
-                                self.selected = len(self.captions)-1
-                            else:
-                                self.selected -= 1
-                            self.captions[self.selected].change_color(config.colors.get("White"))
-                        if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
-                            if self.selected == len(self.captions)-1:
-                                self.selected = 0
-                            else:
-                                self.selected += 1
-                            self.captions[self.selected].change_color(config.colors.get("White"))
-                        if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                            return self.selected
+                run = self.buttons.handle_events()
+            if run < 0:
+                return run
+            return self.selection
+
 
         def update(self):
             self.__screen.fill((0, 0, 0))
-            self.__screen.blit(self.logo, ((self.width - 300) / 2, (self.height - 300) / 2))
-            captions_total_width = 0
-            for caption in self.captions:
-                captions_total_width += caption.get_width()
-            gap = int((self.width-captions_total_width)/(len(self.captions)+1))
-            x_pos = 0
-            self.grey_captions_except(self.selected)
-            for caption in self.captions:
-                x_pos += gap
-                self.__screen.blit(caption.text, (x_pos, 50))
-                x_pos += caption.get_width()
+            self.__screen.blit(self.logo, ((self.width - (self.logo.get_width()+50)), (self.height - 300) / 2))
+            self.buttons.update(self.__screen)
             pygame.display.update()
-
-        def grey_captions_except(self, pos):
-            for i in range(len(self.captions)):
-                if i != pos:
-                    self.captions[i].change_color()
 
         def open_highscores(self):
             run = True
