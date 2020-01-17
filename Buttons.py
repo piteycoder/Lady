@@ -21,7 +21,7 @@ class Buttons:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return -1
+                return self.buttons[0][0]
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                     self.__handle_left_move()
@@ -32,8 +32,8 @@ class Buttons:
                 if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     self.__handle_down_move()
                 if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    return False
-        return True
+                    return self.buttons[self.row][self.col]
+        return None
 
     def update(self, screen):
         y_pos = 30

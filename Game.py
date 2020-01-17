@@ -20,16 +20,15 @@ class Game(object):
         self.__screen = pygame.display.set_mode((self.width, self.height))
         self.ladybugs = []
         self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
-        self.num_of_ladybugs = 0
         self.FPS = 60
+        self.level = config.default_level
         self.clock = pygame.time.Clock()
         self.highscores = File(config.highscores_filename)
-        self.caption = Caption("text", 20)
 
     def run(self):
         run = True
         while run:
-            menu = self.Menu(self.width, self.height)
+            menu = self.Menu(self.width, self.height, self.__screen)
             run = menu.run()
             if run == 1:
                 menu.open_highscores()
@@ -52,7 +51,7 @@ class Game(object):
 
                         self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
                         collision = self.__update_enemies_movements()
-                        self.player.score += self.num_of_ladybugs
+                        self.player.score += self.level
 
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
@@ -76,8 +75,7 @@ class Game(object):
         pygame.quit()
 
     def __set_difficulty(self, num_of_ladybugs=config.default_level):
-        self.num_of_ladybugs = num_of_ladybugs
-        for i in range(self.num_of_ladybugs):
+        for i in range(num_of_ladybugs):
             x_pos = random.choice((random.randint(0, self.width / 2 - 60),
                                    random.randint(self.width / 2 + 30, self.width - 30)))
             y_pos = random.choice((random.randint(0, self.height / 2 - 60),
@@ -164,16 +162,16 @@ class Game(object):
         return highscores
 
     class Menu:  ############# MENU HANDLER #################
-        def __init__(self, width, height):
-            self.__screen = pygame.display.set_mode((width, height))
+        def __init__(self, width, height, screen):
+            self.__screen = screen
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
             self.logo = pygame.transform.scale(self.logo, (300, 300))
             self.buttons = Buttons([[Caption("QUIT", 30, config.colors.get("Grey")),
                             Caption("HIGHSCORES", 30, config.colors.get("Grey")),
                              Caption("START", 30)],
-                             [Caption("Player name: ", 30, config.colors.get("Grey")),
-                              Caption("", 30, config.colors.get("Grey"))],
-                             [Caption("Set difficulty: ", 30, config.colors.get("Grey")),
+                             [Caption("PLAYER NAME: ", 30, config.colors.get("Grey")),
+                              Caption(config.player_name, 30, config.colors.get("Grey"))],
+                             [Caption("DIFFICULTY: ", 30, config.colors.get("Grey")),
                               Caption(str(config.default_level), 30, config.colors.get("Grey"))]])
             self.width = width
             self.height = height
@@ -181,17 +179,28 @@ class Game(object):
 
         def run(self):
             run = True
-            while run >= 0:
+            while run:
                 self.update()
-                run = self.buttons.handle_events()
-            if run < 0:
-                return run
+                self.selection = self.buttons.handle_events()
+                if self.selection is not None:
+                    if self.selection == Caption("QUIT"):
+                        return 0
+                    if self.selection == Caption("HIGHSCORES"):
+                        return 1
+                    if self.selection == Caption("START"):
+                        return 2
+                    if self.selection == Caption("PLAYER NAME: ") or self.selection == self.buttons.buttons[1][1]:
+                        pass
+                        # let the user type in the name
+                    if self.selection == Caption("DIFFICULTY: ") or self.selection == self.buttons.buttons[2][1]:
+                        pass
+                        # let the user change difficulty
             return self.selection
 
 
         def update(self):
             self.__screen.fill((0, 0, 0))
-            self.__screen.blit(self.logo, ((self.width - (self.logo.get_width()+50)), (self.height - 300) / 2))
+            self.__screen.blit(self.logo, ((self.width-self.logo.get_width())/2, self.height-self.logo.get_height()-50))
             self.buttons.update(self.__screen)
             pygame.display.update()
 
