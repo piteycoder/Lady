@@ -252,7 +252,7 @@ class Game(object):
                             player_name = config.player_name
                             self.buttons.buttons[1][1] = Caption(player_name, 30)
                             run = False
-                        elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                        elif event.key == pygame.K_RETURN:
                             config.player_name = player_name
                             run = False
                         else:

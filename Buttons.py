@@ -1,4 +1,3 @@
-from Objects.Caption import Caption
 import pygame
 import config
 
