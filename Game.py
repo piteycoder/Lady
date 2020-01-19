@@ -21,7 +21,6 @@ class Game(object):
         self.ladybugs = []
         self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
         self.FPS = 60
-        self.level = config.default_level
         self.clock = pygame.time.Clock()
         self.highscores = File(config.highscores_filename)
 
@@ -43,7 +42,7 @@ class Game(object):
                     collision = False
                     self.player.score = 0
                     start.y = int(self.height*0.7)
-                    self.__set_difficulty()
+                    self.__set_difficulty(config.difficulty)
                     self.__reset_player()
                     while run and not collision:
                         self.__screen_update()
@@ -51,7 +50,7 @@ class Game(object):
 
                         self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
                         collision = self.__update_enemies_movements()
-                        self.player.score += self.level
+                        self.player.score += config.difficulty
 
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
@@ -172,7 +171,7 @@ class Game(object):
                              [Caption("PLAYER NAME: ", 30, config.colors.get("Grey")),
                               Caption(config.player_name, 30, config.colors.get("Grey"))],
                              [Caption("DIFFICULTY: ", 30, config.colors.get("Grey")),
-                              Caption(str(config.default_level), 30, config.colors.get("Grey"))]])
+                              Caption(str(config.difficulty), 30, config.colors.get("Grey"))]])
             self.width = width
             self.height = height
             self.selection = Caption("QUIT")
@@ -180,21 +179,27 @@ class Game(object):
         def run(self):
             run = True
             while run:
-                self.update()
                 self.selection = self.buttons.handle_events()
                 if self.selection is not None:
                     if self.selection == Caption("QUIT"):
                         return 0
-                    if self.selection == Caption("HIGHSCORES"):
+                    elif self.selection == Caption("HIGHSCORES"):
                         return 1
-                    if self.selection == Caption("START"):
+                    elif self.selection == Caption("START"):
                         return 2
-                    if self.selection == Caption("PLAYER NAME: ") or self.selection == self.buttons.buttons[1][1]:
-                        pass
+                    elif self.selection == Caption("PLAYER NAME: ") or self.selection == self.buttons.buttons[1][1]:
+                        self.selection = self.buttons.buttons[1][1]
+                        self.buttons.row = 1
+                        self.buttons.col = 1
+                        self.__get_playername()
                         # let the user type in the name
-                    if self.selection == Caption("DIFFICULTY: ") or self.selection == self.buttons.buttons[2][1]:
-                        pass
+                    elif self.selection == Caption("DIFFICULTY: ") or self.selection == self.buttons.buttons[2][1]:
+                        self.selection = self.buttons.buttons[2][1]
+                        self.buttons.row = 2
+                        self.buttons.col = 1
+                        self.__get_difficulty()
                         # let the user change difficulty
+                self.update()
             return self.selection
 
 
@@ -231,3 +236,56 @@ class Game(object):
                             return False
 
                 pygame.display.update()
+
+        def __get_playername(self):
+            player_name = ""
+            run = True
+            while run:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        run = False
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_BACKSPACE:
+                            if len(player_name):
+                                player_name = player_name[:-1]
+                        elif event.key == pygame.K_ESCAPE:
+                            player_name = config.player_name
+                            self.buttons.buttons[1][1] = Caption(player_name, 30)
+                            run = False
+                        elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                            config.player_name = player_name
+                            run = False
+                        else:
+                            player_name += event.unicode
+                self.buttons.buttons[1][1] = Caption(player_name, 30)
+                self.update()
+            self.selection = self.buttons.buttons[1][0]
+            self.buttons.row = 1
+            self.buttons.col = 0
+
+        def __get_difficulty(self):
+            difficulty = config.difficulty
+            run = True
+            while run:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        run = False
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_w or event.key == pygame.K_UP:
+                            if difficulty < config.max_level:
+                                difficulty += 1
+                        elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                            if difficulty > config.min_level:
+                                difficulty -= 1
+                        elif event.key == pygame.K_ESCAPE:
+                            difficulty = config.difficulty
+                            self.buttons.buttons[2][1] = Caption(config.difficulty, 30)
+                            run = False
+                        elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                            config.difficulty = difficulty
+                            run = False
+                self.buttons.buttons[2][1] = Caption(difficulty, 30)
+                self.update()
+            self.selection = self.buttons.buttons[2][0]
+            self.buttons.row = 2
+            self.buttons.col = 0
