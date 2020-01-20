@@ -20,22 +20,25 @@ class Game(object):
         self.__screen = pygame.display.set_mode((self.width, self.height))
         self.ladybugs = []
         self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
-        self.FPS = 120
+        self.FPS = config.fps
         self.clock = pygame.time.Clock()
         self.highscores = File(config.highscores_filename)
+        pygame.mixer_music.load('Objects/music/MoonlightSonata.mp3')
 
     def run(self):
         run = True
         while run:
             menu = self.Menu(self.width, self.height, self.__screen)
-            pygame.mixer_music.load('Objects/music/MoonlightSonata2.mp3')
-            pygame.mixer_music.play(-1, 5.5)
+            pygame.mixer_music.rewind()
+            pygame.mixer_music.play(-1, 360)
             run = menu.run()
             if run == 1:
+                pygame.mixer_music.rewind()
+                pygame.mixer_music.play(-1, 1)
                 menu.open_highscores()
             elif run == 2:
-                pygame.mixer_music.load('Objects/music/MoonlightSonata3.mp3')
-                pygame.mixer_music.play(-1, 6)
+                pygame.mixer_music.rewind()
+                pygame.mixer_music.play(-1, 486)
                 start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
                 start.x = (self.width - start.text.get_width()) / 2
                 start.y = int(self.height * 0.7)
@@ -259,7 +262,7 @@ class Game(object):
                         elif event.key == pygame.K_RETURN:
                             config.player_name = player_name
                             run = False
-                        else:
+                        elif len(player_name) < 16:
                             player_name += event.unicode
                 self.buttons.buttons[1][1] = Caption(player_name, 30)
                 self.update()
