@@ -58,9 +58,7 @@ class Game(object):
                         self.player.score += config.difficulty
 
                         for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                run = False
-                            elif event.type == pygame.KEYDOWN:
+                            if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_ESCAPE:
                                     run = False
 
@@ -147,9 +145,7 @@ class Game(object):
         i = len(self.highscores.data)-1
         if self.player.score <= self.highscores.data[i].score:
             return
-        print("Score to be saved: " + str(self.player.score))
         self.highscores.data[i] = Score(self.player.name, self.player.score)
-        print("Score saved: " + str(self.highscores.data[i].score))
         while i > 0 and self.highscores.data[i] > self.highscores.data[i-1]:
             temp = self.highscores.data[i]
             self.highscores.data[i] = self.highscores.data[i-1]
@@ -158,12 +154,14 @@ class Game(object):
         self.highscores.save()
 
     def __set_default_highscores(self):
+        self.highscores.open()
         default_points = 100000
         highscores = []
         for i in range(10):
             highscores.append(Score(config.player_name, default_points))
             default_points -= 10000
-        return highscores
+        self.highscores.data = highscores
+        self.highscores.save()
 
     class Menu:  ############# MENU HANDLER #################
         def __init__(self, width, height, screen, mixer):
