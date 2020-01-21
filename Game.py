@@ -9,6 +9,7 @@ from Objects.Caption import Caption
 from File import File
 from Score import Score
 from Buttons import Buttons
+from Music import Music
 
 
 class Game(object):
@@ -23,22 +24,19 @@ class Game(object):
         self.FPS = config.fps
         self.clock = pygame.time.Clock()
         self.highscores = File(config.highscores_filename)
-        pygame.mixer_music.load('Objects/music/MoonlightSonata.mp3')
+        self.mixer = Music('Objects/music/MoonlightSonata.mp3')
 
     def run(self):
         run = True
         while run:
-            menu = self.Menu(self.width, self.height, self.__screen)
-            pygame.mixer_music.rewind()
-            pygame.mixer_music.play(-1, 360)
+            menu = self.Menu(self.width, self.height, self.__screen, self.mixer)
+            self.mixer.play_from(-1, 360)
             run = menu.run()
             if run == 1:
-                pygame.mixer_music.rewind()
-                pygame.mixer_music.play(-1, 1)
+                self.mixer.play_from(-1, 1)
                 menu.open_highscores()
             elif run == 2:
-                pygame.mixer_music.rewind()
-                pygame.mixer_music.play(-1, 486)
+                self.mixer.play_from(-1, 486)
                 start = Caption("WCIŚNIJ SPACJĘ ABY ROZPOCZĄĆ", 30, config.colors.get("White"))
                 start.x = (self.width - start.text.get_width()) / 2
                 start.y = int(self.height * 0.7)
@@ -168,20 +166,22 @@ class Game(object):
         return highscores
 
     class Menu:  ############# MENU HANDLER #################
-        def __init__(self, width, height, screen):
+        def __init__(self, width, height, screen, mixer):
             self.__screen = screen
             self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
             self.logo = pygame.transform.scale(self.logo, (300, 300))
             self.buttons = Buttons([[Caption("QUIT", 30, config.colors.get("Grey")),
-                            Caption("HIGHSCORES", 30, config.colors.get("Grey")),
-                             Caption("START", 30)],
-                             [Caption("PLAYER NAME: ", 30, config.colors.get("Grey")),
-                              Caption(config.player_name, 30, config.colors.get("Grey"))],
-                             [Caption("DIFFICULTY: ", 30, config.colors.get("Grey")),
-                              Caption(str(config.difficulty), 30, config.colors.get("Grey"))]])
+                                    Caption("HIGHSCORES", 30, config.colors.get("Grey")),
+                                    Caption("START", 30)],
+                                    [Caption("PLAYER NAME: ", 30, config.colors.get("Grey")),
+                                    Caption(config.player_name, 30, config.colors.get("Grey"))],
+                                    [Caption("DIFFICULTY: ", 30, config.colors.get("Grey")),
+                                    Caption(str(config.difficulty), 30, config.colors.get("Grey"))],
+                                    [Caption("MUSIC: ON", 30, config.colors.get("Grey"))]])
             self.width = width
             self.height = height
             self.selection = Caption("QUIT")
+            self.mixer = mixer
 
         def run(self):
             run = True
@@ -206,6 +206,12 @@ class Game(object):
                         self.buttons.col = 1
                         self.__get_difficulty()
                         # let the user change difficulty
+                    elif self.selection == Caption("MUSIC: ON") or Caption("MUSIC: OFF"):
+                        if self.mixer.is_on():
+                            self.buttons.buttons[3][0] = Caption("MUSIC: OFF", 30)
+                        else:
+                            self.buttons.buttons[3][0] = Caption("MUSIC: ON", 30)
+                        self.mixer.change_mode()
                 self.update()
             return self.selection
 
