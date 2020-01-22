@@ -19,6 +19,7 @@ class Game(object):
         self.width = width
         self.height = height
         self.__screen = pygame.display.set_mode((self.width, self.height))
+        self.__screen = pygame.display.set_caption("Ladybug Game")
         self.ladybugs = []
         self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
         self.FPS = config.fps
