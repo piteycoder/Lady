@@ -11,6 +11,9 @@ from Score import Score
 from Buttons import Buttons
 from Music import Music
 
+icon = pygame.image.load(os.path.join('ladybug.ico'))
+logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
+
 
 class Game(object):
 
@@ -18,8 +21,7 @@ class Game(object):
         pygame.init()
         self.width = width
         self.height = height
-        self.__screen = pygame.display.set_mode((self.width, self.height))
-        self.__screen = pygame.display.set_caption("Ladybug Game")
+        self.__set_screen_up()
         self.ladybugs = []
         self.player = Player((self.width - 30) / 2, (self.height - 30) / 2, 0, 0)
         self.FPS = config.fps
@@ -53,16 +55,10 @@ class Game(object):
                     while run and not collision:
                         self.__screen_update()
                         self.clock.tick(self.FPS)
-
                         self.player.move(-self.player.x_speed / 10, -self.player.y_speed / 10)
                         collision = self.__update_enemies_movements()
                         self.player.score += config.difficulty
-
-                        for event in pygame.event.get():
-                            if event.type == pygame.KEYDOWN:
-                                if event.key == pygame.K_ESCAPE:
-                                    run = False
-
+                        pygame.event.get()
                         self.__handle_keys(pygame.key.get_pressed())
                     if collision:
                         result = Caption("Twój wynik: " + str(self.player.score), 50)
@@ -164,11 +160,16 @@ class Game(object):
         self.highscores.data = highscores
         self.highscores.save()
 
+    def __set_screen_up(self):
+        pygame.init()
+        pygame.display.set_icon(icon)
+        pygame.display.set_caption('Ladybug v1.1')
+        self.__screen = pygame.display.set_mode((self.width, self.height))
+
     class Menu:  ############# MENU HANDLER #################
         def __init__(self, width, height, screen, mixer):
             self.__screen = screen
-            self.logo = pygame.image.load(os.path.join('Objects/imgs/ladybug-logo.png'))
-            self.logo = pygame.transform.scale(self.logo, (300, 300))
+            self.logo = logo
             self.buttons = Buttons([[Caption("QUIT", 30, config.colors.get("Grey")),
                                     Caption("HIGHSCORES", 30, config.colors.get("Grey")),
                                     Caption("START", 30)],
